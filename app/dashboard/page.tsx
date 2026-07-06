@@ -1,22 +1,47 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import LengthSelector from "@/components/lenghselector";
+import LengthSelector from "@/components/LengthSelector";
 import { Textarea } from "@/components/ui/textarea";
-import ToneSelector from "@/components/toneselector";
-import TypeSelector from "@/components/typeselector";
-import { grammarPrompt } from "../utils/prompt";
+import ToneSelector from "@/components/ToneSelector";
+import TypeSelector from "@/components/TypeSelector";
 
-export default async function Dashboard() {
-  const prompt = grammarPrompt({
-    text: "hi bro what are you doing",
-  });
+import { grammarPrompt, refinePrompt } from "../utils/prompt";
+import { useRef, useState } from "react";
+import axios from "axios";
 
-  const res = await fetch("http://localhost:3000/api/refine", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ prompt }),
-  });
+export default function Dashboard() {
+  const [tone, setTone] = useState<string | null>(null);
+  const [length, setLength] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const [result, setResult] = useState<string | null>(null);
+
+  const handleCorrectGrammar = async () => {
+    const prompt = grammarPrompt({
+      text: textRef.current?.value || "",
+    });
+    const response = await axios.post("/api/refine", {
+      prompt,
+    });
+    if (response.data) {
+      setResult(response.data as string);
+    }
+  };
+
+  const handleRefineText = async () => {
+    const prompt = refinePrompt({
+      text: textRef.current?.value || "",
+      tone: tone,
+      postType: type,
+      length: length,
+    });
+    const response = await axios.post("/api/refine", {
+      prompt,
+    });
+    if (response.data) {
+      setResult(response.data as string);
+    }
+  };
 
   return (
     <div className="flex flex-col justify-center items-center w-full h-screen max-w-2xl gap-6">
@@ -29,17 +54,22 @@ export default async function Dashboard() {
       </div>
       <div className="w-full flex flex-col gap-4">
         <Textarea
+          ref={textRef}
           placeholder="paste your text here!"
           className="bg-zinc-950 border border-zinc-500 text-white"
         />
         <div className="flex items-center justify-center w-full gap-2">
-          <TypeSelector />
-          <ToneSelector />
-          <LengthSelector />
-          <Button variant={"default"} size={"lg"}>
+          <TypeSelector value={type} setValue={setType} />
+          <ToneSelector value={tone} setValue={setTone} />
+          <LengthSelector value={length} setValue={setLength} />
+          <Button
+            onClick={handleCorrectGrammar}
+            variant={"default"}
+            size={"lg"}
+          >
             Correct Grammar
           </Button>
-          <Button variant={"default"} size={"lg"}>
+          <Button onClick={handleRefineText} variant={"default"} size={"lg"}>
             Refine
           </Button>
         </div>

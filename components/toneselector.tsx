@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 
 const items = [
-  { label: "Select tone", value: null },
   { label: "Normal", value: "normal" },
   { label: "Professional", value: "professional" },
   { label: "Friendly", value: "friendly" },
@@ -23,11 +22,17 @@ const items = [
   { label: "Creative", value: "creative" },
 ];
 
-export default function ToneSelector() {
+export default function ToneSelector({
+  value,
+  setValue,
+}: {
+  value: string | null;
+  setValue: (value: string | null) => void;
+}) {
   return (
-    <Select items={items}>
+    <Select items={items} value={value} onValueChange={setValue}>
       <SelectTrigger className="w-full max-w-48">
-        <SelectValue />
+        <SelectValue placeholder="Select tone" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

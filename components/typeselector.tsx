@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 
 const items = [
-  { label: "Select type", value: null },
   { label: "General", value: "general" },
   { label: "Email", value: "email" },
   { label: "Message", value: "message" },
@@ -21,11 +20,17 @@ const items = [
   { label: "Essay / Assignment", value: "essay / assignment" },
 ];
 
-export default function TypeSelector() {
+export default function TypeSelector({
+  value,
+  setValue,
+}: {
+  value: string | null;
+  setValue: (value: string | null) => void;
+}) {
   return (
-    <Select items={items}>
+    <Select items={items} value={value} onValueChange={setValue}>
       <SelectTrigger className="w-full max-w-48">
-        <SelectValue />
+        <SelectValue placeholder="Select type" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
