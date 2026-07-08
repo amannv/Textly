@@ -1,10 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import LengthSelector from "@/components/LengthSelector";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { Navbar } from "@/components/Navbar";
 import ToneSelector from "@/components/ToneSelector";
 import TypeSelector from "@/components/TypeSelector";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import LengthSelector from "@/components/LengthSelector";
 import { grammarPrompt, refinePrompt } from "../utils/prompt";
 import { useRef, useState, useEffect, useCallback } from "react";
 import axios from "axios";
@@ -16,10 +17,11 @@ export default function Dashboard() {
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
   const fullTextRef = useRef<string>("");
-  const resultSectionRef = useRef<HTMLDivElement>(null);
 
   const startTypewriter = useCallback((text: string) => {
     fullTextRef.current = text;
@@ -28,40 +30,47 @@ export default function Dashboard() {
     setResult(text);
   }, []);
 
-  // Typewriter effect
   useEffect(() => {
     if (!isTyping) return;
+    setLoading(true);
 
     let charIndex = 0;
     const fullText = fullTextRef.current;
+
+    if (!fullText) {
+      console.error("Error while refining text!");
+    }
 
     const interval = setInterval(() => {
       charIndex++;
       setDisplayedText(fullText.slice(0, charIndex));
 
+      if (charIndex % 5 === 0) {
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+
       if (charIndex >= fullText.length) {
         clearInterval(interval);
         setIsTyping(false);
+        setLoading(false);
       }
     }, 20);
 
     return () => clearInterval(interval);
   }, [isTyping]);
 
-  // Auto-scroll to result when it appears
-  useEffect(() => {
-    if (result && resultSectionRef.current) {
-      setTimeout(() => {
-        resultSectionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-    }
-  }, [result]);
 
   const handleCorrectGrammar = async () => {
     try {
+      if (textRef.current?.value === "") {
+        console.error("Paste some text to refine");
+        return;
+      }
+
+      setLoading(true);
       const prompt = grammarPrompt({
         text: textRef.current?.value || "",
       });
@@ -77,6 +86,12 @@ export default function Dashboard() {
 
   const handleRefineText = async () => {
     try {
+      if (textRef.current?.value === "") {
+        console.error("Paste some text to refine");
+        return;
+      }
+
+      setLoading(true);
       const prompt = refinePrompt({
         text: textRef.current?.value || "",
         tone: tone,
@@ -95,11 +110,8 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Hero section — always centered, never moves */}
-      <div className="relative flex flex-col justify-center items-center w-full h-screen max-w-2xl mx-auto gap-6">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
+      <Navbar />
+      <div className="relative flex flex-col items-center w-full min-h-screen h-full max-w-2xl mx-auto gap-6 pt-[calc(50vh-10rem)]">
         <div>
           <h1 className="font-extrabold text-5xl text-foreground">
             paste your{" "}
@@ -110,39 +122,46 @@ export default function Dashboard() {
           </h1>
         </div>
         <div className="w-full flex flex-col gap-4">
-          <Textarea ref={textRef} placeholder="paste your text here!" />
+          <Textarea
+            ref={textRef}
+            placeholder="Paste your email, blog, social media caption, essay, or any text..."
+          />
           <div className="flex items-center justify-center w-full gap-2">
             <TypeSelector value={type} setValue={setType} />
             <ToneSelector value={tone} setValue={setTone} />
             <LengthSelector value={length} setValue={setLength} />
             <Button
+              disabled={loading}
               onClick={handleCorrectGrammar}
               variant={"default"}
               size={"lg"}
+              className="min-w-35"
             >
-              Correct Grammar
+              {loading ? <Spinner /> : "Correct Grammar"}
             </Button>
-            <Button onClick={handleRefineText} variant={"default"} size={"lg"}>
-              Refine
+            <Button
+              disabled={loading}
+              onClick={handleRefineText}
+              variant={"default"}
+              size={"lg"}
+              className="min-w-20"
+            >
+              {loading ? <Spinner /> : "Refine"}
             </Button>
           </div>
+          {result && (
+            <div
+              ref={resultRef}
+              className="animate-slide-down-fade min-h-30 w-full rounded-md border border-input bg-input/10 px-2 py-2 text-sm text-foreground md:text-xs/relaxed dark:bg-input/30 scrollbar-none whitespace-pre-wrap mb-20"
+            >
+              {displayedText}
+              {isTyping && (
+                <span className="inline-block w-0.5 h-4 bg-foreground ml-0.5 animate-pulse align-text-bottom" />
+              )}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Result section — below the fold, scrolled into view */}
-      {result && (
-        <div
-          ref={resultSectionRef}
-          className="w-full max-w-2xl mx-auto px-4 pt-8 pb-16"
-        >
-          <div className="animate-slide-down-fade min-h-30 w-full rounded-md border border-input bg-input/10 px-4 py-4 text-sm text-foreground md:text-xs/relaxed dark:bg-input/30 scrollbar-none">
-            {displayedText}
-            {isTyping && (
-              <span className="inline-block w-0.5 h-4 bg-foreground ml-0.5 animate-pulse align-text-bottom" />
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
