@@ -152,8 +152,15 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  html, body {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+  }
   html {
-    @apply font-sans;
+    @apply font-sans overflow-x-hidden;
   }
 }
 

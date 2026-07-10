@@ -155,14 +155,11 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <div className="relative flex flex-col items-center w-full min-h-screen h-full max-w-2xl mx-auto gap-6 pt-[calc(50vh-10rem)]">
+      <div className="relative flex flex-col items-center w-full min-h-screen h-full max-w-3xl mx-auto gap-6 pt-[calc(50vh-10rem)] px-4 md:px-8">
         <div>
-          <h1 className="font-extrabold text-5xl text-foreground">
-            paste your{" "}
-            <span className="font-extrabold text-5xl text-primary">text </span>
-            <span className="font-extrabold text-5xl text-foreground">
-              below!
-            </span>
+          <h1 className="font-extrabold text-3xl md:text-5xl text-foreground text-center">
+            paste your <span className="text-primary">text </span>
+            <span>below!</span>
           </h1>
         </div>
         <div className="w-full flex flex-col gap-4">
@@ -189,28 +186,32 @@ export default function Dashboard() {
               <X size={14} />
             </Button>
           </div>
-          <div className="flex items-center justify-center w-full gap-2">
-            <TypeSelector value={type} setValue={setType} />
-            <ToneSelector value={tone} setValue={setTone} />
-            <LengthSelector value={length} setValue={setLength} />
-            <Button
-              disabled={loading}
-              onClick={() => refineText("grammar")}
-              variant={"default"}
-              size={"lg"}
-              className="min-w-35"
-            >
-              {loading ? <Spinner /> : "Correct Grammar"}
-            </Button>
-            <Button
-              disabled={loading}
-              onClick={() => refineText("refine")}
-              variant={"default"}
-              size={"lg"}
-              className="min-w-20"
-            >
-              {loading ? <Spinner /> : "Refine"}
-            </Button>
+          <div className="flex flex-col md:flex-row items-center justify-center w-full gap-2 md:gap-1.5">
+            <div className="flex items-center justify-center w-full md:auto gap-1.5">
+              <TypeSelector value={type} setValue={setType} />
+              <ToneSelector value={tone} setValue={setTone} />
+              <LengthSelector value={length} setValue={setLength} />
+            </div>
+            <div className="flex items-center justify-center w-full md:w-auto gap-1.5">
+              <Button
+                disabled={loading}
+                onClick={() => refineText("grammar")}
+                variant={"default"}
+                size={"lg"}
+                className="min-w-35 flex-1 md:flex-none"
+              >
+                {loading ? <Spinner /> : "Correct Grammar"}
+              </Button>
+              <Button
+                disabled={loading}
+                onClick={() => refineText("refine")}
+                variant={"default"}
+                size={"lg"}
+                className="min-w-20 flex-1 md:flex-none"
+              >
+                {loading ? <Spinner /> : "Refine"}
+              </Button>
+            </div>
           </div>
           {(result || isClearing) && (
             <div
